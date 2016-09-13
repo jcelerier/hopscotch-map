@@ -17,6 +17,7 @@
 #include <algorithm>
 #include <cstdint>
 #include <climits>
+#include <strings.h>
 
 namespace {
     /*
@@ -939,20 +940,17 @@ private:
 
     
     typename std::vector<hopscotch_bucket>::const_iterator find_in_buckets(const Key& key, typename std::vector<hopscotch_bucket>::const_iterator it_bucket) const {      
-        // TODO Try to optimize the function. 
-        // I tried to use ffs and  __builtin_ffs functions but I could not reduce the time the function takes with -march=native
-        
         neighborhood_bitmap neighborhood_infos = it_bucket->get_neighborhood_infos();
         while(neighborhood_infos != 0) {
-            if((neighborhood_infos & 1) == 1) {
-                if(m_key_equal(it_bucket->get_key_value().first, key)) {
-                    return it_bucket;
-                }
+            const int first_bit_set = __builtin_ffsll(neighborhood_infos);
+            if(m_key_equal((it_bucket + first_bit_set - 1)->get_key_value().first, key)) {
+                return it_bucket + first_bit_set - 1;
             }
             
-            ++it_bucket;
-            neighborhood_infos = (neighborhood_bitmap) (neighborhood_infos >> 1);
+            it_bucket += first_bit_set;
+            neighborhood_infos = (neighborhood_bitmap) (neighborhood_infos >> first_bit_set);
         }
+
         
         return m_buckets.end();
     }
