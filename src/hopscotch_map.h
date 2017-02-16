@@ -581,13 +581,21 @@ public:
         m_overflow_elements.clear();
         m_nb_elements = 0;
     }
-    
+
     std::pair<iterator, bool> insert(const value_type& value) {
         return insert_internal(value);
     }
-    
+
     std::pair<iterator, bool> insert(value_type&& value) {
         return insert_internal(std::move(value));
+    }
+
+    iterator insert(const_iterator hint, const value_type& value) {
+        return insert_internal(value).first;
+    }
+
+    iterator insert(const_iterator hint, value_type&& value) {
+        return insert_internal(std::move(value)).first;
     }
     
     template<class InputIt>
@@ -609,6 +617,11 @@ public:
     template<class... Args>
     std::pair<iterator,bool> emplace(Args&&... args) {
         return insert(value_type(std::forward<Args>(args)...));
+    }
+
+    template<class... Args>
+    iterator emplace(const_iterator hint, Args&&... args) {
+        return insert(hint, value_type(std::forward<Args>(args)...));
     }
     
     template <class... Args>
@@ -1449,7 +1462,9 @@ public:
     
     std::pair<iterator, bool> insert(const value_type& value) { return m_ht.insert(value); }
     std::pair<iterator, bool> insert(value_type&& value) { return m_ht.insert(std::move(value)); }
-    
+    iterator insert(const_iterator hint, const value_type& value) { return m_ht.insert(hint, value); }
+    iterator insert(const_iterator hint, value_type&& value) { return m_ht.insert(hint, std::move(value)); }
+
     template<class InputIt>
     void insert(InputIt first, InputIt last) { m_ht.insert(first, last); }
     void insert(std::initializer_list<value_type> ilist) { m_ht.insert(ilist.begin(), ilist.end()); }
@@ -1462,6 +1477,8 @@ public:
      */
     template<class... Args>
     std::pair<iterator,bool> emplace(Args&&... args) { return m_ht.emplace(std::forward<Args>(args)...); }
+    template<class... Args>
+    iterator emplace(const_iterator hint, Args&&... args) { return m_ht.emplace(hint, std::forward<Args>(args)...); }
     
     template <class... Args>
     std::pair<iterator, bool> try_emplace(const key_type& k, Args&&... args) { 
